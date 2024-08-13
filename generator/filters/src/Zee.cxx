@@ -2,6 +2,7 @@
 #include <cmath>
 #include "Zee.h"
 #include "helper.h"
+#define ZEE_PID 23
 
 using namespace generator;
 
@@ -13,6 +14,7 @@ Zee::Zee(const std::string name, IGenerator *gen):
   declareProperty( "MinPt"                , m_minPt=0.0                 );
   declareProperty( "ZeroVertexParticles"  , m_zeroVertexParticles=false );
   declareProperty( "ForceForwardElectron" , m_forceForwardElectron=false );
+  declareProperty( "ZParentId"            , m_zParentId=ZEE_PID               );
 }
 
 
@@ -52,24 +54,55 @@ StatusCode Zee::execute( generator::Event &ctx )
 
   for (auto part : evt.particles()) 
   {
-    // Is electron and final state?
-    if (part->abs_pid() == 11 && ParticleHelper::isFinal(part.get()) )
-    {
-      if(part->parents().empty()){
-        continue;
-      }
+    if (!ParticleHelper::isFinal(part.get())){
+      // Not final state
+      continue;
+    }
+    if (part->abs_pid() != 11){
+      // Not electron or positron
+      continue;
+    }
 
-      auto mother = part->parents().at(0);
-      // The mother is Z?
-      if( mother->pid() == 23)
-      {
-        float eta = part->momentum().eta();
-        float pt = part->momentum().pt();
-        if ( std::abs(eta) < m_etaMax && pt > (m_minPt/1.e3) ){
-          zee.push_back( part.get() );
-        }
-      }// From Z?
-    }// Is electron?
+    auto parent = part->parents().at(0);
+    if (parent->pid() != ZEE_PID){
+      // Do not come from Z
+      continue;
+    }
+
+    auto grandParent = parent->parents().at(0);
+    if (m_zParentId != ZEE_PID && grandParent->pid() != m_zParentId){
+      // Invalid Z parent
+      continue;
+    }
+
+    if (std::abs(part->momentum().eta()) > m_etaMax){
+      // Out of eta range
+      continue;
+    }
+
+    if (part->momentum().pt() < (m_minPt/1.e3)){
+      // Out of pt range
+      continue;
+    }
+    zee.push_back(part.get());
+    // // Is electron and final state?
+    // if (part->abs_pid() == 11 && ParticleHelper::isFinal(part.get()) )
+    // {
+    //   if(part->parents().empty()){
+    //     continue;
+    //   }
+
+    //   auto mother = part->parents().at(0);
+    //   // The mother is Z?
+    //   if( mother->pid() == 23)
+    //   {
+    //     float eta = part->momentum().eta();
+    //     float pt = part->momentum().pt();
+    //     if ( std::abs(eta) < m_etaMax && pt > (m_minPt/1.e3) ){
+    //       zee.push_back( part.get() );
+    //     }
+    //   }// From Z?
+    // }// Is electron?
   }
 
   if ( zee.empty() ){

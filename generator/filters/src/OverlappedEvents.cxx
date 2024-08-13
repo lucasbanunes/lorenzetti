@@ -53,11 +53,11 @@ StatusCode OverlappedEvents::execute(generator::Event &ctx)
   // shoot a particle with DeltaR of distance of the
   // seed center. The energy of the particle will be a
   // fraction of the total energy of the seed.
-  int initial_size = ctx.size();
-  for (int i = 0; i < initial_size; i++)
+  // int initial_size = ctx.size();
+  float eta, phi;
+  for ( auto& seed : *ctx )
   {
-    generator::Seed seed = ctx[i];
-    float eta, phi;
+    // generator::Seed seed = ctx[i];
     do
     { // Generate eta/phi until the position is inside of the radio (deltaR)
       // This could be improved in the future by computing the exact intervals instead o trying random values
@@ -74,12 +74,12 @@ StatusCode OverlappedEvents::execute(generator::Event &ctx)
     // for only working with Pythia8 as a generator
     int iparticle = fill(pythia, m_pdgid, energy, eta, phi, m_atRest, m_hasLifetime);
     auto *p = &pythia->event[iparticle];
-    pythia->event.popBack();
-    auto new_seed = generator::Seed(eta, phi);
-    new_seed.emplace_back(1, 0, p->id(), p->px(), p->py(), p->pz(), p->eta(), p->phi(),
+    // pythia->event.popBack();
+    // auto new_seed = generator::Seed(eta, phi);
+    seed.emplace_back(1, 0, p->id(), p->px(), p->py(), p->pz(), p->eta(), p->phi(),
                           p->xProd(), p->yProd(), p->zProd() + main_event_z, p->tProd() + main_event_t,
                           p->e(), p->eT());
-    ctx.push_back(new_seed);
+    // ctx.push_back(new_seed);
   }
   return StatusCode::SUCCESS;
 }
