@@ -24,8 +24,9 @@ HiggsSM:gg2H = on
 23:onMode = off
 23:onIfMatch = -11 11
 23:mMin = 2.0
-!PhaseSpace:mHatMin = 75.           ! Z window
-!PhaseSpace:mHatMax = 120           ! Z window
+! 3000 GeV mass
+25:mMin = 2900
+25:mMax = 3100
 
 
 ! 5) Switch on/off the key event generation steps.
