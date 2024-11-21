@@ -49,6 +49,7 @@ outputLevel = LoggingLevel.toC(args.outputLevel)
 try:
   
   exec(args.command)
+  print(f'THE MAGNETIC FIELD IS ENABLED? {args.enableMagneticField}')
 
   from ATLAS import ATLASConstruction as ATLAS
   # Build the ATLAS detector
@@ -57,7 +58,7 @@ try:
   acc = ComponentAccumulator("ComponentAccumulator", detector,
                               NumberOfThreads = args.numberOfThreads,
                               OutputFile      = args.outputFile,
-                              Timeout         = args.timeout * MINUTES )
+                              Timeout         = args.timeout * 60 )
   
   gun = EventReader( "EventReader", args.inputFile,
                      # outputs

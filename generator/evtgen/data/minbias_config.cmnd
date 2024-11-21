@@ -13,8 +13,8 @@ Beams:eCM = 14000.                 ! CM energy of collision
 
 
 ! 4) Settings for the hard-process generation.
-SoftQCD:all = on                   ! Turn on soft QCD
-!SoftQCD:nonDiffractive = on       ! Turn on nonDiffractive
+!SoftQCD:all = on                   ! Turn on soft QCD
+SoftQCD:nonDiffractive = on       ! Turn on nonDiffractive
 
 
 ! 5) Switch on/off the key event generation steps.
