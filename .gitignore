@@ -29,3 +29,5 @@ build
 
 executables
 *.exe
+
+.env

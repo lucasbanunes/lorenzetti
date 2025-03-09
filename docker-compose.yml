@@ -1,0 +1,15 @@
+name: lorenzetti-base-prefix
+services:
+  lorenzetti-base:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      # args:
+      #   - GEANT4_VERSION=${GEANT4_VERSION}
+      #   - PYTHIA8_VERSION=${PYTHIA8_VERSION}
+      #   - FASTJET_VERSION=${FASTJET_VERSION}
+      #   - HEPMC_VERSION=${HEPMC_VERSION}
+      #   - ROOT_VERSION=${ROOT_VERSION}
+    image: ${USERNAME}/lorenzetti:base-prefix
+    container_name: lzt-container-base-prefix
+    tty: true

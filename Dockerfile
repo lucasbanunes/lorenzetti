@@ -84,7 +84,7 @@ WORKDIR /physics
 RUN git clone https://github.com/lorenzetti-hep/pythia8.git && cd pythia8 && ./configure --with-python-config=python3-config && make -j$(nproc)
 
 # Install FastJet
-RUN curl -O http://fastjet.fr/repo/fastjet-3.3.3.tar.gz && tar zxvf fastjet-3.3.3.tar.gz && cd fastjet-3.3.3/ && ./configure && make -j$(nproc) && make install
+RUN curl -O https://fastjet.fr/repo/fastjet-3.3.3.tar.gz && tar zxvf fastjet-3.3.3.tar.gz && cd fastjet-3.3.3/ && ./configure && make -j$(nproc) && make install
 
 
 # Install HEPMC
@@ -94,7 +94,7 @@ RUN mkdir build && cd build && cmake -DHEPMC3_ENABLE_ROOTIO=ON -DHEPMC3_INSTALL_
 
 
 # Install pip packages
-RUN pip3 install --no-cache-dir setuptools pandas sklearn seaborn jupyterlab tqdm atlas-mpl-style twine pyhepmc colorama prettytable
+RUN pip3 install --no-cache-dir setuptools pandas scikit-learn seaborn jupyterlab tqdm atlas-mpl-style twine pyhepmc colorama prettytable
 RUN apt-get install -y xorg
 
 # setup all environments before start bash terminal
