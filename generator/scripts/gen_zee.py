@@ -187,11 +187,14 @@ def get_job_params(args):
         if os.path.exists(output_file):
             print(f"{i} - Output file {output_file} already exists. Skipping.")
             continue
+        print(f"{i} - Output file {output_file} does not exist. Running.")
         yield events, output_file
 
 
 if __name__ == "__main__":
+    print('Starting execution of gen_zee.py')
     args = parse_args()
+    print(f"Parsed args: {args.__dict__}")
     pool = Parallel(n_jobs=args.number_of_threads)
     pool(delayed(main)(
         events=events,
@@ -210,3 +213,4 @@ if __name__ == "__main__":
         bc_id_end=args.bc_id_end
     )
         for events, output_file in get_job_params(args))
+    print('Finished execution of gen_zee.py')

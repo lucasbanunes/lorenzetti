@@ -3,6 +3,7 @@
 import argparse
 import sys
 from pathlib import Path
+from joblib import Parallel, delayed
 
 from GaugiKernel.constants import MINUTES
 from GaugiKernel import LoggingLevel, get_argparser_formatter
@@ -126,8 +127,7 @@ def main(logging_level: str,
     acc.run(number_of_events)
 
 
-if __name__ == "__main__":
-    args = parse_args()
+def get_job_params(args):
     splitted_output_filename = args.output_file.split(".")
     for i, input_file in enumerate(args.input_file):
         output_file = splitted_output_filename.copy()
@@ -136,12 +136,25 @@ if __name__ == "__main__":
         if output_file.exists():
             print(f"{i} - Output file {output_file} already exists. Skipping.")
             continue
-        # No joblib, parallelization is handled by Geant4
-        main(logging_level=args.output_level,
-             input_file=input_file,
-             output_file=output_file,
-             command=args.command,
-             enable_magnetic_field=args.enable_magnetic_field,
-             timeout=args.timeout,
-             number_of_events=args.number_of_events,
-             number_of_threads=args.number_of_threads)
+        print(f"{i} - Output file {output_file} does not exist. Running.")
+        yield input_file, output_file
+
+
+if __name__ == "__main__":
+    print('Starting execution of simu_trf.py')
+    args = parse_args()
+    print(f"Parsed args: {args.__dict__}")
+    pool = Parallel(n_jobs=1)
+    # Only one job, parallelization is handled by Geant4
+    pool(delayed(main)(
+            logging_level=args.output_level,
+            input_file=input_file,
+            output_file=output_file,
+            command=args.command,
+            enable_magnetic_field=args.enable_magnetic_field,
+            timeout=args.timeout,
+            number_of_events=args.number_of_events,
+            number_of_threads=args.number_of_threads
+        )
+        for input_file, output_file in get_job_params(args))
+    print('Finished execution of simu_trf.py')
