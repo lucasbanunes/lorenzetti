@@ -129,45 +129,47 @@ def main(logging_level: str,
 
 def get_output_filename(basename: str, counter: int) -> Path:
     splitted_output_filename = basename.split(".")
-    output_file = splitted_output_filename.copy()
-    output_file.insert(-1, str(counter))
-    output_file = Path('.'.join(output_file))
-    return output_file
+    splitted_output_filename.insert(-1, str(counter))
+    return Path('.'.join(splitted_output_filename))
 
 
 if __name__ == "__main__":
     args = parse_args()
     if len(args.input_file) <= 1:
         # Only one file no need to paralelize
+        input_file = str(args.input_file[0])
+        output_file = args.output_file
+        print(f"Running simulation for {input_file} -> {output_file}")
         main(logging_level=args.output_level,
-             input_file=str(args.input_file[0]),
-             output_file=args.output_file,
+             input_file=input_file,
+             output_file=output_file,
              command=args.command,
              enable_magnetic_field=args.enable_magnetic_field,
              timeout=args.timeout,
              number_of_events=args.number_of_events,
              number_of_threads=args.number_of_threads)
-
-    for i, input_file in enumerate(args.input_file):
-        output_file = get_output_filename(args.output_file, i)
-        if output_file.exists():
-            print(f"{i} - Output file {output_file} already exists. Skipping.")
-            continue
-        print(f"{i} - Running simulation for {input_file} -> {output_file}")
-        # Parallelization is handled by Geant4
-        # Can't just call main due to geant4 limitations
-        command = [
-            "simu_trf.py",
-            "-i", str(input_file),
-            "-o", str(output_file),
-            "-l", args.output_level,
-            "-c", args.command,
-            "--timeout", str(args.timeout),
-            "--number-of-threads", str(args.number_of_threads),
-        ]
-        if args.enable_magnetic_field:
-            command.append("--enable-magnetic-field")
-        if args.number_of_events:
-            command.append("--number-of-events")
-            command.append(str(args.number_of_events))
-        subprocess.run(command)
+    else:
+        for i, input_file in enumerate(args.input_file):
+            output_file = get_output_filename(args.output_file, i)
+            if output_file.exists():
+                print(f"{i} - Output file {output_file} already exists."
+                      " Skipping.")
+                continue
+            print(f'Running iteration {i}')
+            # Parallelization is handled by Geant4
+            # Can't just call main due to geant4 limitations
+            command = [
+                "simu_trf.py",
+                "-i", str(input_file),
+                "-o", str(output_file),
+                "-l", args.output_level,
+                "-c", args.command,
+                "--timeout", str(args.timeout),
+                "--number-of-threads", str(args.number_of_threads),
+            ]
+            if args.enable_magnetic_field:
+                command.append("--enable-magnetic-field")
+            if args.number_of_events:
+                command.append("--number-of-events")
+                command.append(str(args.number_of_events))
+            subprocess.run(command)
