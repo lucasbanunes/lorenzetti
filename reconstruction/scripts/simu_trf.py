@@ -126,7 +126,6 @@ def main(logging_level: str,
     acc += HIT
     acc.run(number_of_events)
 
-
 def get_output_filename(basename: str, counter: int) -> Path:
     splitted_output_filename = basename.split(".")
     splitted_output_filename.insert(-1, str(counter))

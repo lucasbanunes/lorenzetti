@@ -124,11 +124,14 @@ def get_job_params(args):
         if output_file.exists():
             print(f"{i} - Output file {output_file} already exists. Skipping.")
             continue
+        print(f"{i} - Output file {output_file} does not exist. Running.")
         yield input_file, output_file
 
 
 if __name__ == "__main__":
+    print('Starting execution of digit_trf.py')
     args = parse_args()
+    print(f"Parsed args: {args.__dict__}")
     pool = Parallel(n_jobs=args.number_of_threads)
     pool(delayed(main)(
             logging_level=args.output_level,
@@ -136,5 +139,6 @@ if __name__ == "__main__":
             output_file=output_file,
             command=args.command,
             number_of_events=args.number_of_events
-    )
+        )
         for input_file, output_file in get_job_params(args))
+    print('Finished execution of digit_trf.py')
