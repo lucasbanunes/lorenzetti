@@ -21,7 +21,7 @@ class ComponentAccumulator(Cpp):
                  Seed: int = 512,
                  NumberOfThreads: int = 1,
                  RunVis: bool = False,
-                 Timeout: int = 120*MINUTES,
+                 Timeout: int = 120,
                  OutputLevel: int = LoggingLevel.toC('INFO'),
                  ):
 
