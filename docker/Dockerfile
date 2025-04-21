@@ -145,8 +145,13 @@ RUN wget http://hepmc.web.cern.ch/hepmc/releases/HepMC3-${HEPMC_VERSION}.tar.gz 
     make -j$(nproc) && \
     make install
 
-COPY requirements.txt /requirements.txt
+COPY docker/requirements.txt /requirements.txt
 RUN apt-get update -y && \
+    # Install dependencies for matplotlib with LaTeX support
+    apt-get install -y texlive-latex-extra texlive-fonts-recommended dvipng cm-super && \
+    # Install python3-venv
+    # As from python 3.10+ it is not possible to install
+    # pip packages on the system python
     apt install -y python3-pip python3-venv && \
     python -m venv /opt/lorenzetti-python && \
     /opt/lorenzetti-python/bin/pip install -r /requirements.txt
