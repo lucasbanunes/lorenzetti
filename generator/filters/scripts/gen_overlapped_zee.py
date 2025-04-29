@@ -15,9 +15,9 @@ from GaugiKernel import LoggingLevel
 from GaugiKernel import GeV
 
 
-datapath    = os.environ["LORENZETTI_EVTGEN_DATA_DIR"]
+datapath = os.environ["LORENZETTI_EVTGEN_DATA_DIR"]
 PILEUP_FILE = f'{datapath}/minbias_config.cmnd'
-ZEE_FILE    = f'{datapath}/zee_config.cmnd'
+ZEE_FILE = f'{datapath}/gg2H2ZZ2ee.cmnd'
 
 
 def parse_args():
@@ -100,7 +100,7 @@ def parse_args():
                         dest='pileup_file', required=False,
                         type=str, default=PILEUP_FILE,
                         help="The pythia pileup file configuration.")
-    parser.add_argument('-m','--merge', action='store_true',
+    parser.add_argument('-m', '--merge', action='store_true',
                         dest='merge', required=False,
                         help='Merge all files.')
 
@@ -141,19 +141,19 @@ def main(events: List[int],
     tape += zee
 
     boostedElectron = OverlappedEvents("BoostedElectron",
-                                        Pythia8("BoostedGenerator",
-                                                Seed=seed),
-                                        Particle=Particle.Electron,
-                                        DeltaR=0.5,
-                                        OutputLevel=outputLevel
-                                        )
+                                       Pythia8("BoostedGenerator",
+                                               Seed=seed),
+                                       Particle=Particle.Electron,
+                                       DeltaR=0.5,
+                                       OutputLevel=outputLevel
+                                       )
 
     tape += boostedElectron
 
     if args.pileup_avg > 0:
 
         pileup = Pileup("Pileup",
-                        Pythia8("MBGenerator", 
+                        Pythia8("MBGenerator",
                                 File=mb_file,
                                 Seed=seed),
                         EtaMax=3.2,
@@ -178,7 +178,7 @@ def get_events_per_job(args):
         return args.events_per_job
 
 
-def get_job_params(args, force:bool=False):
+def get_job_params(args, force: bool = False):
     if args.event_numbers:
         event_numbers_list = args.event_numbers.split(",")
         args.number_of_events = len(event_numbers_list)
@@ -193,7 +193,7 @@ def get_job_params(args, force:bool=False):
             list(range(start, start+events_per_job))
             for start in range(0, args.number_of_events, events_per_job)
         )
-    seed=args.seed
+    seed = args.seed
     splitted_output_filename = args.output_file.split(".")
     for i, events in enumerate(event_numbers):
         output_file = splitted_output_filename.copy()
@@ -204,9 +204,11 @@ def get_job_params(args, force:bool=False):
             continue
         yield events, output_file, int(seed + seed*i*0.5)
 
+
 def merge(args):
-    files = [f"{os.getcwd()}/{f}" for _, f, _ in list(get_job_params(args, force=True))]
-    if args.merge or len(files)==1:
+    files = [f"{os.getcwd()}/{f}" for _, f,
+             _ in list(get_job_params(args, force=True))]
+    if args.merge or len(files) == 1:
         os.system(f"hadd -f {args.output_file} {' '.join(files)}")
         [os.remove(f) for f in files]
 
@@ -230,14 +232,12 @@ def run(args):
         bc_id_end=args.bc_id_end
     )
         for events, output_file, seed in get_job_params(args))
-    
+
     merge(args)
 
 
-
-
 if __name__ == "__main__":
-    parser=parse_args()
+    parser = parse_args()
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
