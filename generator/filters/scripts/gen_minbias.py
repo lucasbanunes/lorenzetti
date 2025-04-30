@@ -5,19 +5,19 @@ import random
 import sys
 import os
 
-from math           import ceil
-from typing         import List
-from joblib         import Parallel, delayed
-from evtgen         import Pythia8
-from filters        import FixedRegion
-from GenKernel      import EventTape
-from GaugiKernel    import get_argparser_formatter
-from GaugiKernel    import LoggingLevel
+from math import ceil
+from typing import List
+from joblib import Parallel, delayed
+from evtgen import Pythia8
+from filters import FixedRegion
+from GenKernel import EventTape
+from GaugiKernel import get_argparser_formatter
+from GaugiKernel import LoggingLevel
 
 
-
-datapath    = os.environ["LORENZETTI_EVTGEN_DATA_DIR"]
+datapath = os.environ["LORENZETTI_EVTGEN_DATA_DIR"]
 PILEUP_FILE = f'{datapath}/minbias_config.cmnd'
+
 
 def parse_args():
 
@@ -50,29 +50,28 @@ def parse_args():
                         dest='output_level', required=False,
                         type=str, default="INFO",
                         help="The output level messenger.")
-    parser.add_argument('--eta-max', action='store', 
-                        dest='eta_max', required = False, 
+    parser.add_argument('--eta-max', action='store',
+                        dest='eta_max', required=False,
                         type=float, default=3.2,
-                        help = "Maximum Eta.")
-    
-    parser.add_argument('--eta', action='store', 
-                        dest='eta', required = False, 
-                        type=float, default=0.00,
-                        help = "Eta position.")
-    parser.add_argument('--phi', action='store', 
-                        dest='phi', required = False, 
-                        type=float, default=0.00,
-                        help = "Phi position.")
+                        help="Maximum Eta.")
 
-    parser.add_argument('--delta-eta', action='store', 
-                        dest='delta_eta', required = False, 
+    parser.add_argument('--eta', action='store',
+                        dest='eta', required=False,
+                        type=float, default=0.00,
+                        help="Eta position.")
+    parser.add_argument('--phi', action='store',
+                        dest='phi', required=False,
+                        type=float, default=0.00,
+                        help="Phi position.")
+
+    parser.add_argument('--delta-eta', action='store',
+                        dest='delta_eta', required=False,
                         type=float, default=999,
-                        help = "Enable phi range.")
-    parser.add_argument('--delta-phi', action='store', 
-                        dest='delta_phi', required = False, 
+                        help="Enable phi range.")
+    parser.add_argument('--delta-phi', action='store',
+                        dest='delta_phi', required=False,
                         type=float, default=999,
-                        help = "Minimum Phi.")
-    
+                        help="Minimum Phi.")
 
     parser.add_argument('--pileup-avg', action='store',
                         dest='pileup_avg', required=False,
@@ -90,9 +89,6 @@ def parse_args():
                         dest='pileup_avg_max', required=False,
                         type=float, default=None,
                         help="The pileup average upper bound.")
-
-
-
 
     parser.add_argument('--bc-id-start', action='store',
                         dest='bc_id_start', required=False,
@@ -118,10 +114,9 @@ def parse_args():
                         dest='pileup_file', required=False,
                         type=str, default=PILEUP_FILE,
                         help="The pythia pileup file configuration.")
-    parser.add_argument('-m','--merge', action='store_true',
+    parser.add_argument('-m', '--merge', action='store_true',
                         dest='merge', required=False,
                         help='Merge all files.')
-
 
     return parser
 
@@ -132,8 +127,8 @@ def main(events: List[int],
          run_number: int,
          seed: int,
          eta_max: float,
-         eta : float,
-         phi : float,
+         eta: float,
+         phi: float,
          delta_eta: float,
          delta_phi: float,
          pileup_avg: float,
@@ -148,11 +143,11 @@ def main(events: List[int],
                      RunNumber=run_number)
 
     # dummy seed to store all pileup particles
-    tape+=FixedRegion("Seed", Eta=eta, Phi=phi )
-  
+    tape += FixedRegion("Seed", Eta=eta, Phi=phi)
+
     from filters import Pileup
     pileup = Pileup("Pileup",
-                    Pythia8("MBGenerator", 
+                    Pythia8("MBGenerator",
                             File=mb_file,
                             Seed=seed),
                     EtaMax=delta_eta,
@@ -164,7 +159,7 @@ def main(events: List[int],
                     OutputLevel=outputLevel,
                     DeltaEta=delta_eta,
                     DeltaPhi=delta_phi,
-    )
+                    )
     tape += pileup
     tape.run(events)
 
@@ -176,24 +171,31 @@ def get_events_per_job(args):
         return args.events_per_job
 
 
-def get_job_params(args, force:bool=False):
+def get_event_numbers(args):
     if args.event_numbers:
         event_numbers_list = args.event_numbers.split(",")
         args.number_of_events = len(event_numbers_list)
         events_per_job = get_events_per_job(args)
-        event_numbers = (
-            event_numbers_list[start:start+events_per_job]
-            for start in range(0, args.number_of_events, events_per_job)
-        )
+        for start in range(0, args.number_of_events, events_per_job):
+            end = start+events_per_job
+            if end <= args.number_of_events:
+                yield event_numbers_list[start:end]
+            else:
+                yield event_numbers_list[start:]
     else:
         events_per_job = get_events_per_job(args)
-        event_numbers = (
-            list(range(start, start+events_per_job))
-            for start in range(0, args.number_of_events, events_per_job)
-        )
-    seed=args.seed
+        for start in range(0, args.number_of_events, events_per_job):
+            end = start+events_per_job
+            if end <= args.number_of_events:
+                yield list(range(start, end))
+            else:
+                yield list(range(start, args.number_of_events))
+
+
+def get_job_params(args, force: bool = False):
+    seed = args.seed
     splitted_output_filename = args.output_file.split(".")
-    for i, events in enumerate(event_numbers):
+    for i, events in enumerate(get_event_numbers(args)):
         output_file = splitted_output_filename.copy()
         output_file.insert(-1, str(i))
         output_file = '.'.join(output_file)
@@ -202,15 +204,18 @@ def get_job_params(args, force:bool=False):
             continue
         yield events, output_file, int(seed + seed*i*0.5)
 
+
 def get_pileup_avg(args):
     if args.pileup_avg_min and args.pileup_avg_max:
         return random.randint(args.pileup_avg_min, args.pileup_avg_max)
     else:
         return args.pileup_avg
 
+
 def merge(args):
-    files = [f"{os.getcwd()}/{f}" for _, f, _ in list(get_job_params(args, force=True))]
-    if args.merge or len(files)==1:
+    files = [f"{os.getcwd()}/{f}" for _, f,
+             _ in list(get_job_params(args, force=True))]
+    if args.merge and len(files) > 1:
         os.system(f"hadd -f {args.output_file} {' '.join(files)}")
         [os.remove(f) for f in files]
 
@@ -231,7 +236,7 @@ def run(args):
         phi=args.phi,
         delta_eta=args.delta_eta,
         delta_phi=args.delta_phi,
-        pileup_avg=get_pileup_avg(args) ,
+        pileup_avg=get_pileup_avg(args),
         pileup_sigma=args.pileup_sigma,
         mb_file=args.pileup_file,
         bc_id_start=args.bc_id_start,
@@ -240,11 +245,10 @@ def run(args):
         for events, output_file, seed in get_job_params(args))
 
     merge(args)
-       
 
 
 if __name__ == "__main__":
-    parser=parse_args()
+    parser = parse_args()
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)

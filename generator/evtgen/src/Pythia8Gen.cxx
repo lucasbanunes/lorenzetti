@@ -50,7 +50,7 @@ StatusCode Pythia8Gen::initialize()
 StatusCode Pythia8Gen::execute(HepMC3::GenEvent &evt)
 {
 
-  MSG_INFO("Pythia8::next()...");
+  // MSG_INFO("Pythia8::next()...");
   if (!m_gun.next())
   {
     if (m_iAbort++ > m_nAbort)
