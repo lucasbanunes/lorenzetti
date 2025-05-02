@@ -15,6 +15,8 @@ from ATLAS                  import ATLASConstruction as ATLAS
 from CaloCellBuilder        import CaloHitBuilder
 from RootStreamBuilder      import RootStreamHITMaker
 
+from reco import merge_args, update_args
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -52,6 +54,11 @@ def parse_args():
     parser.add_argument('-c', '--command', action='store',
                         dest='command', required=False, default="''",
                         help="The preexec command")
+    parser.add_argument('--save-all-hits', action='store_true',
+                        dest='save_all_hits', required=False,
+                        help="Save all hits into the output file.")
+
+    parser = merge_args(parser)
 
     return parser
 
@@ -61,6 +68,7 @@ def main(logging_level: str,
          output_file: str | Path,
          command: str,
          enable_magnetic_field: bool,
+         save_all_hits : bool,
          timeout: int,
          number_of_events: int,
          number_of_threads: int):
@@ -100,6 +108,7 @@ def main(logging_level: str,
 
     HIT = RootStreamHITMaker("RootStreamHITMaker",
                              OutputLevel=outputLevel,
+                             OnlyRoI= not save_all_hits,
                              # input from context
                              InputHitsKey=recordable("Hits"),
                              InputEventKey=recordable("Events"),
@@ -139,6 +148,7 @@ def run(args):
             'output_file'           : output_file,
             'command'               : args.command,
             'enable_magnetic_field' : args.enable_magnetic_field,
+            'save_all_hits'         : args.save_all_hits,
             'timeout'               : args.timeout,
             'number_of_events'      : args.number_of_events,
             'number_of_threads'     : args.number_of_threads
@@ -169,4 +179,5 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
+    args = update_args(args)
     run(args)
