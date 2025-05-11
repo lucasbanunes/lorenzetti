@@ -23,6 +23,7 @@ class ComponentAccumulator(Cpp):
                  RunVis: bool = False,
                  Timeout: int = 120*MINUTES,
                  OutputLevel: int = LoggingLevel.toC('INFO'),
+                 merge_files: bool = True,
                  ):
 
         Cpp.__init__(self, ROOT.RunManager(name))
@@ -39,6 +40,7 @@ class ComponentAccumulator(Cpp):
         self.setProperty("RunVis", RunVis)
         self.setProperty("Seed", Seed)
         self.outputFiles = [ f"{self.OutputFile}.{thread}" for thread in range(self.NumberOfThreads)]
+        self.merge_files = merge_files
 
 
     def __del__(self):
@@ -91,6 +93,7 @@ class ComponentAccumulator(Cpp):
 
 
     def merge(self):
-        os.system(f"hadd -f {self.OutputFile} {' '.join(self.outputFiles)}")
-        [os.remove(f) for f in self.outputFiles]
+        if self.merge_files:
+            os.system(f"hadd -f {self.OutputFile} {' '.join(self.outputFiles)}")
+            [os.remove(f) for f in self.outputFiles]
 
