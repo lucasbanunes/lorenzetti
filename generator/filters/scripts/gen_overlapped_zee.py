@@ -208,7 +208,7 @@ def get_job_params(args, force: bool = False):
 def merge(args):
     files = [f"{os.getcwd()}/{f}" for _, f,
              _ in list(get_job_params(args, force=True))]
-    if args.merge or len(files) == 1:
+    if args.merge:
         os.system(f"hadd -f {args.output_file} {' '.join(files)}")
         [os.remove(f) for f in files]
 
