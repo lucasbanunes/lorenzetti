@@ -6,6 +6,9 @@ import os
 from math import ceil
 from typing import List
 from joblib import Parallel, delayed
+from pathlib import Path
+
+
 from evtgen import Pythia8
 from filters import Zee, Pileup, OverlappedEvents, Particle
 
@@ -198,8 +201,8 @@ def get_job_params(args, force: bool = False):
     for i, events in enumerate(event_numbers):
         output_file = splitted_output_filename.copy()
         output_file.insert(-1, str(i))
-        output_file = '.'.join(output_file)
-        if not force and os.path.exists(output_file):
+        output_file = Path('.'.join(output_file))
+        if not force and output_file.exists():
             print(f"{i} - Output file {output_file} already exists. Skipping.")
             continue
         yield events, output_file, int(seed + seed*i*0.5)
@@ -208,9 +211,8 @@ def get_job_params(args, force: bool = False):
 def merge(args):
     files = [f"{os.getcwd()}/{f}" for _, f,
              _ in list(get_job_params(args, force=True))]
-    if args.merge:
-        os.system(f"hadd -f {args.output_file} {' '.join(files)}")
-        [os.remove(f) for f in files]
+    os.system(f"hadd -f {args.output_file} {' '.join(files)}")
+    [os.remove(f) for f in files]
 
 
 def run(args):
@@ -233,7 +235,8 @@ def run(args):
     )
         for events, output_file, seed in get_job_params(args))
 
-    merge(args)
+    if args.merge:
+        merge(args)
 
 
 if __name__ == "__main__":
